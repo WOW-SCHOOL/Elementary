@@ -5,78 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WOW SCHOOL — English File: Elementary</title>
   <meta name="color-scheme" content="dark light" />
-  <link rel="stylesheet" href="style.css?v=4" />
-  <script>
-  // Управление видом в iFrame Miro через параметры URL
-  (function () {
-    const q = new URLSearchParams(location.search);
 
-    // Включаем «режим Miro» по флагу ?miro=1
-    if (q.has('miro')) document.documentElement.classList.add('miro');
+  <!-- Превью (для вставки ссылкой в Miro). Один аккуратный блок -->
+  <link rel="canonical" href="https://wow-school.github.io/Elementary/">
+  <meta property="og:url" content="https://wow-school.github.io/Elementary/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="WOW SCHOOL — English File: Elementary">
+  <meta property="og:description" content="Аудиотреки учебника English File — Elementary.">
+  <meta property="og:image" content="https://wow-school.github.io/Elementary/cover.jpg?v=7">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="WOW SCHOOL — English File: Elementary">
+  <meta name="twitter:description" content="Аудиотреки учебника English File — Elementary.">
+  <meta name="twitter:image" content="https://wow-school.github.io/Elementary/cover.jpg?v=7">
+  <link rel="image_src" href="https://wow-school.github.io/Elementary/cover.jpg?v=7">
+  <meta name="robots" content="max-image-preview:large">
 
-    // Масштаб (zoom) страницы, например ?zoom=1.18
-    const z = parseFloat(q.get('zoom'));
-    if (!Number.isNaN(z)) document.documentElement.style.setProperty('--miro-zoom', z);
-
-    // Дополнительное увеличение шрифтов, например ?fs=1.1 (10% больше)
-    const fs = parseFloat(q.get('fs'));
-    if (!Number.isNaN(fs)) document.documentElement.style.setProperty('--miro-font-scale', fs);
-  })();
-</script>
-
+  <!-- ВАЖНО: вернул ту же версию, что работала у тебя -->
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
-  <!-- Обложка (постер) поверх плеера -->
-<div id="poster" class="poster" role="button" aria-label="Открыть плеер" tabindex="0">
-  <img src="cover.jpg" alt="English File — Elementary (cover)" />
-  <button class="poster-play" aria-label="Play">
-    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-      <path d="M8 5v14l11-7z" fill="currentColor"></path>
-    </svg>
-  </button>
-</div>
+  <!-- Постер = первый экран. Никаких авто-скрытий вне постера -->
+  <div id="poster" class="poster" role="button" aria-label="Открыть плеер" tabindex="0">
+    <img src="cover.jpg" alt="English File — Elementary (cover)" />
+    <button class="poster-play" aria-label="Play">
+      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+        <path d="M8 5v14l11-7z" fill="currentColor"></path>
+      </svg>
+    </button>
+  </div>
+
   <header class="site-head">
     <div class="brand">WOW SCHOOL</div>
     <h1 class="page-title">English File: Elementary</h1>
   </header>
 
   <main class="player-card" role="region" aria-label="Аудиоплеер">
-    <!-- Now playing -->
     <div class="now">
       <div class="np-top">
         <div class="np-title" id="npTitle">—</div>
         <div class="np-time"><span id="cur">0:00</span> / <span id="dur">0:00</span></div>
       </div>
-
-      <!-- progress -->
       <input id="seek" class="seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Позиция трека" />
     </div>
 
-    <!-- track list -->
     <ul id="list" class="tracklist" role="listbox" aria-label="Список треков"></ul>
 
-    <!-- controls (СНИЗУ ПО ЦЕНТРУ) -->
     <div class="controls">
       <button id="prev" class="ctrl ctrl-sm" aria-label="Предыдущий трек" title="Предыдущий">
-        <!-- chevron-left -->
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
       </button>
 
       <button id="play" class="ctrl ctrl-lg" aria-label="Воспроизвести/пауза" title="Воспроизвести/пауза">
-        <!-- play -->
         <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        <!-- pause -->
         <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
       </button>
 
       <button id="next" class="ctrl ctrl-sm" aria-label="Следующий трек" title="Следующий">
-        <!-- chevron-right -->
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
       </button>
     </div>
   </main>
 
-  <!-- hidden audio element -->
   <audio id="audio" preload="metadata"></audio>
 
   <script>
@@ -95,7 +88,6 @@
     let index  = 0;
     let isSeeking = false;
 
-    // формат времени
     function t(s) {
       if (!isFinite(s)) return '0:00';
       const m = Math.floor(s/60);
@@ -103,14 +95,13 @@
       return m + ':' + k;
     }
 
-    // подгрузка плейлиста
-    fetch('playlist.json?v=4').then(r=>r.json()).then(data=>{
+    // тоже вернул v=5 (как у тебя было рабочее)
+    fetch('playlist.json?v=5').then(r=>r.json()).then(data=>{
       tracks = data.tracks || [];
       buildList();
       if (tracks.length) loadTrack(0, /*autoplay=*/false);
     }).catch(console.error);
 
-    // построить список
     function buildList() {
       listEl.innerHTML = '';
       tracks.forEach((item, i) => {
@@ -127,7 +118,6 @@
         li.addEventListener('click', () => loadTrack(i, true));
         listEl.appendChild(li);
 
-        // если нет длительности в JSON — подгрузим фоном
         if (!item.dur) {
           const a = new Audio();
           a.src = item.file;
@@ -140,7 +130,6 @@
       });
     }
 
-    // загрузить трек
     function loadTrack(i, autoplay) {
       index = (i + tracks.length) % tracks.length;
       const tr = tracks[index];
@@ -159,12 +148,10 @@
       updatePlayBtn();
     }
 
-    // обновление кнопки
     function updatePlayBtn(){
       btnPlay.classList.toggle('is-playing', !audio.paused);
     }
 
-    // события audio
     audio.addEventListener('play',  updatePlayBtn);
     audio.addEventListener('pause', updatePlayBtn);
     audio.addEventListener('loadedmetadata', () => {
@@ -177,11 +164,8 @@
         seek.value = Math.floor(audio.currentTime / audio.duration * 1000);
       }
     });
-    audio.addEventListener('ended', () => {
-      next();
-    });
+    audio.addEventListener('ended', () => { next(); });
 
-    // управление
     function playPause(){ audio.paused ? audio.play().catch(()=>{}) : audio.pause(); }
     function prev(){ loadTrack(index-1, true); }
     function next(){ loadTrack(index+1, true); }
@@ -190,9 +174,8 @@
     btnPrev.addEventListener('click', prev);
     btnNext.addEventListener('click', next);
 
-    // перемотка
     seek.addEventListener('pointerdown', ()=>{ isSeeking = true; });
-    seek.addEventListener('pointerup',   (e)=>{ isSeeking = false; applySeek(e); });
+    seek.addEventListener('pointerup',   ()=>{ isSeeking = false; applySeek(); });
     seek.addEventListener('change',      applySeek);
     function applySeek(){
       if (!isFinite(audio.duration) || audio.duration<=0) return;
@@ -201,7 +184,6 @@
       cur.textContent = t(audio.currentTime);
     }
 
-    // клавиатура: пробел play/pause, ←/→ seek, J/K/L как в плеерах
     window.addEventListener('keydown', (e)=>{
       const tag = (e.target.tagName||'').toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
@@ -214,35 +196,24 @@
     });
   })();
   </script>
+
+  <!-- Постер скрывается ТОЛЬКО при взаимодействии с ним -->
   <script>
   (function () {
     const poster = document.getElementById('poster');
     if (!poster) return;
-
-    // Найдём первый <audio> вашего плеера
     const audio = document.querySelector('audio');
 
     function hidePosterAndPlay() {
       poster.classList.add('hide');
-      if (audio) {
-        audio.play().catch(() => {/* автоплей может быть заблокирован — не страшно */});
-      }
+      if (audio) { audio.play().catch(() => {}); }
     }
 
     poster.addEventListener('click', hidePosterAndPlay);
     poster.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        hidePosterAndPlay();
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hidePosterAndPlay(); }
     });
-
-    // На всякий случай: если пользователь кликнет по списку треков — спрячем постер
-    document.addEventListener('click', function once() {
-      poster.classList.add('hide');
-      document.removeEventListener('click', once);
-    }, { capture: true });
   })();
-</script>
+  </script>
 </body>
 </html>
