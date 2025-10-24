@@ -7,16 +7,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Шапка -->
   <header class="site-head">
     <div class="brand">WOW SCHOOL</div>
     <h1 class="title">English File: Elementary</h1>
   </header>
 
+  <!-- Карточка плеера -->
   <main class="wrap">
     <section class="player-card">
       <div class="now">
         <div class="now__top">
-          <span class="now__title" id="nowTitle">EF4e Elementary SB 1.02</span>
+          <span class="now__title" id="nowTitle">—</span>
           <span class="now__time"><span id="cur">0:00</span> / <span id="dur">0:00</span></span>
         </div>
         <input id="seek" class="seek" type="range" min="0" max="100" value="0" step="0.1" />
@@ -32,7 +34,7 @@
     </section>
   </main>
 
-  <!-- Постер-обложка (cover.jpg в корне рядом с index.html) -->
+  <!-- Постер-обложка -->
   <button class="poster" id="poster" aria-label="Play album">
     <img src="cover.jpg" alt="English File — Elementary (cover)" />
     <span class="poster__play">►</span>
@@ -41,24 +43,19 @@
   <audio id="audio" preload="metadata"></audio>
 
   <script>
-    // ---------- вспомогалки ----------
-    const $ = sel => document.querySelector(sel);
-    const fmt = s => {
-      s = Math.max(0, Math.round(s));
-      const m = Math.floor(s / 60);
-      const ss = String(s % 60).padStart(2, '0');
-      return `${m}:${ss}`;
-    };
-    const params = new URLSearchParams(location.search);
-    const miro = params.get('miro') === '1';
-    const zoom = Number(params.get('zoom') || 1);
-    const fs = Number(params.get('fs') || 1);
+    // ===== утилиты
+    const $ = s => document.querySelector(s);
+    const fmt = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+    const qs = new URLSearchParams(location.search);
+    const isMiro = qs.get('miro') === '1';
+    const zoom = Number(qs.get('zoom') || 1);
+    const fs   = Number(qs.get('fs')   || 1);
 
-    if (miro) document.documentElement.classList.add('miro');
+    if (isMiro) document.documentElement.classList.add('miro');
     document.documentElement.style.setProperty('--miro-zoom', zoom);
     document.documentElement.style.setProperty('--fs-mult', fs);
 
-    // ---------- элементы ----------
+    // ===== элементы
     const audio = $('#audio');
     const listBox = $('#list');
     const nowTitle = $('#nowTitle');
@@ -68,19 +65,19 @@
     const btnPrev = $('#prev');
     const btnPlay = $('#play');
     const btnNext = $('#next');
-    const poster = $('#poster');
+    const poster  = $('#poster');
 
     let playlist = [];
     let idx = 0;
     let userSeeking = false;
 
-    // ---------- загрузка плейлиста ----------
+    // ===== плейлист
     fetch('playlist.json?_=' + Date.now())
       .then(r => r.json())
       .then(data => {
-        playlist = data.tracks || data || [];
+        playlist = Array.isArray(data) ? data : (data.tracks || []);
         buildList();
-        loadTrack(0, false);
+        loadTrack(0, false); // без автоплея — ждём клика по обложке/кнопке
       })
       .catch(e => {
         listBox.innerHTML = `<div class="row row--err">Не удалось загрузить playlist.json</div>`;
@@ -99,14 +96,13 @@
         row.addEventListener('click', () => loadTrack(i, true));
         listBox.appendChild(row);
 
-        // предварительно получим длительность (один раз)
         const pr = document.createElement('audio');
         pr.src = t.file;
         pr.preload = 'metadata';
         pr.addEventListener('loadedmetadata', () => {
           const el = listBox.querySelector(`.row__dur[data-i="${i}"]`);
           if (el) el.textContent = fmt(pr.duration);
-        }, { once:true });
+        }, { once: true });
       });
     }
 
@@ -123,70 +119,63 @@
 
       audio.src = t.file;
       nowTitle.textContent = t.title || t.name || ('Track ' + (i+1));
-      cur.textContent = '0:00';
-      dur.textContent = '0:00';
+      cur.textContent = '0:00'; dur.textContent = '0:00';
       seek.value = 0;
       markActive();
 
-      // если обложка видна — скрываем при запуске
-      if (autoplay) hidePosterAndPlay();
+      if (autoplay) startPlayback();
     }
 
-    function hidePosterAndPlay() {
+    // ===== постер/воспроизведение
+    function hidePoster(){
       poster.classList.add('poster--hide');
-      audio.play().catch(()=>{ /* блокировщики автоплея */ });
-      btnPlay.textContent = '❚❚';
+      // через CSS: pointer-events:none; visibility:hidden; opacity:0
     }
 
-    // ---------- события аудио ----------
-    audio.addEventListener('loadedmetadata', () => {
-      dur.textContent = fmt(audio.duration);
+    function startPlayback(){
+      hidePoster();
+      audio.play().then(() => {
+        btnPlay.textContent = '❚❚';
+      }).catch(() => {
+        // даже если заблокировано автопроигрывание — постер уже скрыт,
+        // пользователь нажмёт Play ещё раз, и всё поедет
+        btnPlay.textContent = '►';
+      });
+    }
+
+    poster.addEventListener('click', startPlayback);
+    poster.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startPlayback(); }
     });
 
-    audio.addEventListener('timeupdate', () => {
-      if (!userSeeking && audio.duration) {
-        seek.value = (audio.currentTime / audio.duration) * 100;
+    // на всякий случай: если пользователь нажмёт большую Play внизу — тоже скрываем постер
+    btnPlay.addEventListener('click', () => {
+      if (!poster.classList.contains('poster--hide')) hidePoster();
+      if (audio.paused) {
+        audio.play().then(()=> btnPlay.textContent = '❚❚');
+      } else {
+        audio.pause(); btnPlay.textContent = '►';
       }
+    });
+
+    // ===== события аудио
+    audio.addEventListener('loadedmetadata', () => dur.textContent = fmt(audio.duration));
+    audio.addEventListener('timeupdate', () => {
+      if (!userSeeking && audio.duration) seek.value = (audio.currentTime / audio.duration) * 100;
       cur.textContent = fmt(audio.currentTime);
     });
-
     audio.addEventListener('ended', () => next());
 
-    // ---------- управление ----------
-    function prev() {
-      loadTrack((idx - 1 + playlist.length) % playlist.length, true);
-    }
-    function playPause() {
-      if (audio.paused) {
-        hidePosterAndPlay();
-      } else {
-        audio.pause();
-        btnPlay.textContent = '►';
-      }
-    }
-    function next() {
-      loadTrack((idx + 1) % playlist.length, true);
-    }
-
+    // ===== навигация / seek
+    function prev(){ loadTrack((idx - 1 + playlist.length) % playlist.length, true); }
+    function next(){ loadTrack((idx + 1) % playlist.length, true); }
     btnPrev.addEventListener('click', prev);
-    btnPlay.addEventListener('click', playPause);
     btnNext.addEventListener('click', next);
 
-    seek.addEventListener('input', () => { userSeeking = true; });
+    seek.addEventListener('input', () => userSeeking = true);
     seek.addEventListener('change', () => {
       userSeeking = false;
-      if (audio.duration) {
-        audio.currentTime = (seek.value / 100) * audio.duration;
-      }
-    });
-
-    // постер
-    poster.addEventListener('click', hidePosterAndPlay);
-    poster.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        hidePosterAndPlay();
-      }
+      if (audio.duration) audio.currentTime = (seek.value / 100) * audio.duration;
     });
   </script>
 </body>
