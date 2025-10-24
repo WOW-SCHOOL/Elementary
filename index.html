@@ -6,6 +6,24 @@
   <title>WOW SCHOOL — English File: Elementary</title>
   <meta name="color-scheme" content="dark light" />
   <link rel="stylesheet" href="style.css?v=4" />
+  <script>
+  // Управление видом в iFrame Miro через параметры URL
+  (function () {
+    const q = new URLSearchParams(location.search);
+
+    // Включаем «режим Miro» по флагу ?miro=1
+    if (q.has('miro')) document.documentElement.classList.add('miro');
+
+    // Масштаб (zoom) страницы, например ?zoom=1.18
+    const z = parseFloat(q.get('zoom'));
+    if (!Number.isNaN(z)) document.documentElement.style.setProperty('--miro-zoom', z);
+
+    // Дополнительное увеличение шрифтов, например ?fs=1.1 (10% больше)
+    const fs = parseFloat(q.get('fs'));
+    if (!Number.isNaN(fs)) document.documentElement.style.setProperty('--miro-font-scale', fs);
+  })();
+</script>
+
 </head>
 <body>
   <!-- Обложка (постер) поверх плеера -->
