@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WOW SCHOOL — English File: Elementary</title>
   <meta name="color-scheme" content="dark light" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <!-- Обложка (постер) поверх плеера -->
@@ -86,7 +86,7 @@
     }
 
     // подгрузка плейлиста
-    fetch('playlist.json?v=4').then(r=>r.json()).then(data=>{
+    fetch('playlist.json?v=5').then(r=>r.json()).then(data=>{
       tracks = data.tracks || [];
       buildList();
       if (tracks.length) loadTrack(0, /*autoplay=*/false);
@@ -219,11 +219,7 @@
       }
     });
 
-    // На всякий случай: если пользователь кликнет по списку треков — спрячем постер
-    document.addEventListener('click', function once() {
-      poster.classList.add('hide');
-      document.removeEventListener('click', once);
-    }, { capture: true });
+    
   })();
 </script>
 </body>
