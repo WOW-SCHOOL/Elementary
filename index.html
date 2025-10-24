@@ -5,46 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WOW SCHOOL — English File: Elementary</title>
   <meta name="color-scheme" content="dark light" />
-
-  <!-- ✅ Абсолютные ссылки под твой домен для превью в Miro -->
-  <meta property="og:url" content="https://wow-school.github.io/Elementary/">
-  <meta property="og:title" content="WOW SCHOOL — English File: Elementary">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://wow-school.github.io/Elementary/cover.jpg">
-  <meta property="og:image:alt" content="English File — Elementary (cover)">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WOW SCHOOL — English File: Elementary">
-  <meta name="twitter:image" content="https://wow-school.github.io/Elementary/cover.jpg">
-
-  <link rel="image_src" href="https://wow-school.github.io/Elementary/cover.jpg">
-
-  <link rel="stylesheet" href="style.css?v=5" />
-
-  <!-- остальной скрипт из прошлого сообщения (чтение ?miro, ?zoom, ?fs) без изменений -->
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
-
 <body>
   <!-- Обложка (постер) поверх плеера -->
-  <div id="poster" class="poster" role="button" aria-label="Открыть плеер" tabindex="0">
-    <img src="cover.jpg" alt="English File — Elementary (cover)" />
-    <button class="poster-play" aria-label="Play">
-      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-        <path d="M8 5v14l11-7z" fill="currentColor"></path>
-      </svg>
-    </button>
-  </div>
-
-  <!-- ✅ Панелька зума (появляется поверх справа-сверху) -->
-  <div class="zoom-ui" aria-label="Масштаб">
-    <button id="zMinus" title="Уменьшить">–</button>
-    <span class="zoom-val" id="zVal">100%</span>
-    <button id="zPlus" title="Увеличить">+</button>
-    <button id="zReset" title="Сбросить масштаб">100%</button>
-  </div>
-
+<div id="poster" class="poster" role="button" aria-label="Открыть плеер" tabindex="0">
+  <img src="cover.jpg" alt="English File — Elementary (cover)" />
+  <button class="poster-play" aria-label="Play">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+      <path d="M8 5v14l11-7z" fill="currentColor"></path>
+    </svg>
+  </button>
+</div>
   <header class="site-head">
     <div class="brand">WOW SCHOOL</div>
     <h1 class="page-title">English File: Elementary</h1>
@@ -68,15 +40,19 @@
     <!-- controls (СНИЗУ ПО ЦЕНТРУ) -->
     <div class="controls">
       <button id="prev" class="ctrl ctrl-sm" aria-label="Предыдущий трек" title="Предыдущий">
+        <!-- chevron-left -->
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
       </button>
 
       <button id="play" class="ctrl ctrl-lg" aria-label="Воспроизвести/пауза" title="Воспроизвести/пауза">
+        <!-- play -->
         <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <!-- pause -->
         <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
       </button>
 
       <button id="next" class="ctrl ctrl-sm" aria-label="Следующий трек" title="Следующий">
+        <!-- chevron-right -->
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
       </button>
     </div>
@@ -133,9 +109,11 @@
         li.addEventListener('click', () => loadTrack(i, true));
         listEl.appendChild(li);
 
+        // если нет длительности в JSON — подгрузим фоном
         if (!item.dur) {
           const a = new Audio();
-          a.src = item.file; a.preload = 'metadata';
+          a.src = item.file;
+          a.preload = 'metadata';
           a.addEventListener('loadedmetadata', () => {
             item.dur = t(a.duration);
             len.textContent = item.dur;
@@ -181,7 +159,9 @@
         seek.value = Math.floor(audio.currentTime / audio.duration * 1000);
       }
     });
-    audio.addEventListener('ended', () => next());
+    audio.addEventListener('ended', () => {
+      next();
+    });
 
     // управление
     function playPause(){ audio.paused ? audio.play().catch(()=>{}) : audio.pause(); }
@@ -194,7 +174,7 @@
 
     // перемотка
     seek.addEventListener('pointerdown', ()=>{ isSeeking = true; });
-    seek.addEventListener('pointerup',   ()=>{ isSeeking = false; applySeek(); });
+    seek.addEventListener('pointerup',   (e)=>{ isSeeking = false; applySeek(e); });
     seek.addEventListener('change',      applySeek);
     function applySeek(){
       if (!isFinite(audio.duration) || audio.duration<=0) return;
@@ -203,7 +183,7 @@
       cur.textContent = t(audio.currentTime);
     }
 
-    // клавиатура
+    // клавиатура: пробел play/pause, ←/→ seek, J/K/L как в плеерах
     window.addEventListener('keydown', (e)=>{
       const tag = (e.target.tagName||'').toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
@@ -216,58 +196,35 @@
     });
   })();
   </script>
-
-  <!-- Скрытие постера и автозапуск -->
   <script>
   (function () {
     const poster = document.getElementById('poster');
     if (!poster) return;
+
+    // Найдём первый <audio> вашего плеера
     const audio = document.querySelector('audio');
+
     function hidePosterAndPlay() {
       poster.classList.add('hide');
-      setTimeout(()=>poster.remove(), 300);
-      try { audio && audio.play && audio.play(); } catch(e){}
+      if (audio) {
+        audio.play().catch(() => {/* автоплей может быть заблокирован — не страшно */});
+      }
     }
+
     poster.addEventListener('click', hidePosterAndPlay);
-    poster.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hidePosterAndPlay(); }
+    poster.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        hidePosterAndPlay();
+      }
     });
+
+    // На всякий случай: если пользователь кликнет по списку треков — спрячем постер
+    document.addEventListener('click', function once() {
+      poster.classList.add('hide');
+      document.removeEventListener('click', once);
+    }, { capture: true });
   })();
-  </script>
-
-  <!-- ✅ Локальный UI для зума -->
-  <script>
-  (function(){
-    const root = document.documentElement;
-    const $    = id => document.getElementById(id);
-    const zVal = $('zVal'), zPlus = $('zPlus'), zMinus = $('zMinus'), zReset = $('zReset');
-
-    function get(n, def){ const v = parseFloat(getComputedStyle(root).getPropertyValue(n)); return Number.isFinite(v) ? v : def; }
-    function apply(zoom, fs){
-      root.style.setProperty('--miro-zoom', zoom);
-      root.style.setProperty('--miro-font-scale', fs);
-      localStorage.setItem('miroZoom', zoom);
-      localStorage.setItem('miroFontScale', fs);
-      zVal.textContent = Math.round(zoom*100) + '%';
-    }
-
-    function clamp(n,min,max){ return Math.min(max, Math.max(min,n)); }
-
-    function current(){ return { z:get('--miro-zoom',1), fs:get('--miro-font-scale',1) }; }
-
-    zPlus.addEventListener('click', ()=>{
-      const {z,fs}=current();
-      apply(clamp(z+0.1, 0.6, 2.0), clamp(fs+0.06, 0.8, 1.8));
-    });
-    zMinus.addEventListener('click', ()=>{
-      const {z,fs}=current();
-      apply(clamp(z-0.1, 0.6, 2.0), clamp(fs-0.06, 0.8, 1.8));
-    });
-    zReset.addEventListener('click', ()=>apply(1,1));
-
-    // init label
-    zVal.textContent = Math.round(get('--miro-zoom',1)*100) + '%';
-  })();
-  </script>
+</script>
 </body>
 </html>
