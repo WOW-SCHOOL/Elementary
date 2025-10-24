@@ -187,3 +187,16 @@ body{
 /* Центруем кнопку над изображением */
 .poster{ gap:0 }
 .poster img + .poster-play{ position:absolute }
+/* === Масштабирование iFrame через параметры ?zoom= и ?fs= === */
+.zoom-wrap{
+  /* zoom всего интерфейса */
+  transform: scale(var(--zoom, 1));
+  transform-origin: top left;
+
+  /* компенсация ширины, чтобы контент не обрезался в iFrame */
+  width: calc(100% / var(--zoom, 1));
+
+  /* необязательный мягкий контроль кегля (если нужно) */
+  font-size: calc(1rem * var(--fs, 1));
+}
+
