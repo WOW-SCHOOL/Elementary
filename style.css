@@ -243,3 +243,29 @@ html.miro .controls .btn,
 html.miro .controls .play {
   transform: scale(1.06); /* +6% */
 }
+/* Постер — первый экран */
+.poster{
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(1200px 700px at 30% 10%, rgba(255,255,255,.03) 0%, transparent 60%),
+    radial-gradient(900px 600px at 90% 40%, rgba(255,255,255,.03) 0%, transparent 60%),
+    linear-gradient(180deg, #1a1425 0%, #0e0a14 120%);
+  transition: opacity .25s ease, visibility .25s ease;
+}
+.poster.hide{ opacity:0; visibility:hidden; }
+.poster img{
+  max-width: min(82vw, 950px);
+  width: 82%;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 40px 120px rgba(0,0,0,.55), 0 2px 24px rgba(0,0,0,.35);
+}
+.poster .poster-play{
+  position: absolute;
+  width: clamp(72px, 9.5vw, 104px);
+  height: clamp(72px, 9.5vw, 104px);
+  border-radius: 999px; border: 0; color:#fff;
+  background: linear-gradient(180deg, #7b44ff 0%, #5b2be8 100%);
+  display: grid; place-items: center; cursor: pointer;
+}
