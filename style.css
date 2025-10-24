@@ -214,45 +214,32 @@ body{
   /* поместим кнопку поверх центра картинки */
   position: absolute;
 }
-/* === Compact view for Miro: делаем «как слева» === */
-:root{
-  /* ширина «карточки»; уменьшите до 800–840px, если хотите ещё ближе */
-  --wrap-max: 820px;
-
-  /* размеры заголовков */
-  --brand-size: clamp(14px, 2.1vw, 22px);
-  --title-size: clamp(28px, 4vw, 44px);
+/* Режим для Miro: ничего не ломаем, только масштаб и кегль */
+:root {
+  --miro-zoom: 1;       /* по умолчанию без масштабирования */
+  --miro-font-scale: 1; /* по умолчанию без увеличения шрифта */
 }
 
-/* общий контейнер страницы */
-.wrap{
-  max-width: var(--wrap-max);
-  margin: 28px auto;
-  padding: 24px 24px 28px;
+/* Включается классом .miro на <html> */
+html.miro {
+  /* Масштабирует всю страницу в WebKit/Chromium (Miro — Chromium) */
+  zoom: var(--miro-zoom);
 }
 
-/* верхняя подпись WOW SCHOOL */
-#brand,
-.brand{
-  font-size: var(--brand-size);
-  text-align: center;
-  letter-spacing: .6px;
-  margin: 0 0 6px;
-  opacity: .95;
+/* Подкручиваем кегль без правки вашей сетки/px */
+html.miro body {
+  font-size: calc(16px * var(--miro-font-scale)); /* ваши rem/em подтянутся */
 }
 
-/* заголовок курса */
-#albumTitle,
-.album-title{
-  font-size: var(--title-size);
-  text-align: center;
-  font-weight: 800;
-  letter-spacing: .3px;
-  margin: 8px 0 18px;
+/* Если нужна чуть выше строка списка в Miro — опционально: */
+html.miro .row,
+html.miro .track-row {
+  line-height: 1.25;             /* мягче межстрочный */
+  min-height: calc(56px * 1.05); /* +5% к высоте строки, если нужен эффект «как в веб» */
 }
 
-/* карточка плеера и низ с большими кнопками */
-.player-card{ padding: 18px; border-radius: 22px; }
-.controls{ gap: 18px; padding: 18px 0 10px; }
-
-
+/* Кнопки управления — немного крупнее в Miro (если хочется) */
+html.miro .controls .btn,
+html.miro .controls .play {
+  transform: scale(1.06); /* +6% */
+}
