@@ -1,0 +1,5 @@
+(Get-ChildItem -Filter *.mp3 | ForEach-Object {
+  @{ title = $_.BaseName -replace '_',' '; file = "tracks/$($_.Name)" }
+} | ConvertTo-Json -Depth 3) `
+| % { '{ "title":"English File — Elementary","tracks":' + $_ + '}' } `
+| Set-Content ../playlist.json -Encoding UTF8
