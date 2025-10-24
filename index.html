@@ -2,100 +2,160 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>WOW SCHOOL — English File: Elementary</title>
-
-  <!-- OpenGraph/Preview — позволяет виджету и мессенджерам подтянуть обложку -->
-  <meta property="og:title" content="WOW SCHOOL — English File: Elementary">
-  <meta property="og:type"  content="website">
-  <meta property="og:image" content="https://wow-school.github.io/Elementary/cover.jpg">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="image_src" href="https://wow-school.github.io/Elementary/cover.jpg">
-
-  <link rel="preload" as="image" href="cover.jpg">
-  <link rel="stylesheet" href="style.css?v=3">
-
-  <!-- Ничего в логике плеера не меняем: ниже твой же скрипт загрузки плейлиста -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="is-splash"> <!-- стартуем с обложкой -->
-  <!-- Слой-обложка (splash). Показывается сразу в iFrame/Miro -->
-  <div id="splash">
-    <div class="splash__cover" role="img" aria-label="English File — Elementary cover"></div>
-    <button id="splashPlay" class="splash__play" aria-label="Play">
-      <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">
-        <circle cx="28" cy="28" r="28" />
-        <polygon points="22,16 42,28 22,40" />
-      </svg>
-    </button>
+<body>
+  <!-- Постер-обложка (видна сразу в Miro) -->
+  <div id="poster" class="poster">
+    <img src="cover.jpg" alt="English File — Elementary (cover)" />
+    <button id="posterPlay" class="poster__play" aria-label="Play">▶</button>
   </div>
 
-  <!-- Весь твой плеер остаётся как есть; завернём в #app, чтобы масштабировать -->
-  <div id="app">
-    <header class="brand">
-      <div class="brand__label">WOW SCHOOL</div>
-      <h1 class="brand__title">English File: Elementary</h1>
-    </header>
+  <header class="head">
+    <div class="brand">WOW SCHOOL</div>
+    <h1 class="title">English File: Elementary</h1>
+  </header>
 
-    <!-- ===== player layout (твоя разметка) ===== -->
-    <main class="player-card">
-      <section class="now">
-        <div class="meta">
-          <div class="track-title" id="trackTitle">—</div>
-          <div class="track-sub"    id="trackSub">—</div>
+  <main class="wrap">
+    <section class="card">
+      <div class="now">
+        <div class="time">
+          <span id="current">0:00</span>
+          <span id="total">/ 0:00</span>
         </div>
+        <input id="seek" class="seek" type="range" min="0" max="1000" value="0" step="1" />
+        <div id="nowTitle" class="track-title">—</div>
+      </div>
 
-        <div class="progress">
-          <div class="time" id="timeLeft">0:00</div>
-          <input id="seek" type="range" min="0" max="100" value="0" />
-          <div class="time" id="timeRight">0:00</div>
-        </div>
-      </section>
+      <div class="list" id="list" role="listbox" aria-label="Playlist"></div>
 
-      <section class="list">
-        <div class="list-head">
-          <div id="albumTitle">EF4e Elementary SB 1.02</div>
-          <div class="dur" id="totalDur">0:00 / 0:00</div>
-        </div>
+      <div class="controls">
+        <button id="prev" class="btn" aria-label="Previous">‹</button>
+        <button id="play" class="btn btn--play" aria-label="Play/Pause">▶</button>
+        <button id="next" class="btn" aria-label="Next">›</button>
+      </div>
+    </section>
+  </main>
 
-        <div id="trackList" class="tracks"></div>
-      </section>
-    </main>
+  <audio id="audio" preload="metadata"></audio>
 
-    <!-- Транспорт — фиксируем к низу iFrame -->
-    <footer class="transport" id="transport">
-      <button id="prevBtn" class="btn circle" aria-label="Previous">‹</button>
-      <button id="playBtn" class="btn circle primary" aria-label="Play/Pause">▶</button>
-      <button id="nextBtn" class="btn circle" aria-label="Next">›</button>
-    </footer>
-  </div>
-
-  <!-- ===== твои скрипты остаются; добавлен только небольшой “обёрточный” код ===== -->
   <script>
-    // 1) Масштаб и базовый размер шрифта через query: ?zoom=1.25&fs=1.10
-    (function applyZoom(){
-      const p = new URLSearchParams(location.search);
-      const z  = Math.max(0.5, Math.min(2.0, parseFloat(p.get('zoom') || '1')));
-      const fs = Math.max(0.75, Math.min(1.5, parseFloat(p.get('fs')   || '1')));
-      document.documentElement.style.setProperty('--z',  z);
-      document.documentElement.style.setProperty('--fs', fs);
+    // ---------- ЗУМ ИЗ QUERY (?zoom=1.25) ----------
+    (function applyZoomFromQuery(){
+      const params = new URLSearchParams(location.search);
+      const z = parseFloat(params.get('zoom'));
+      if (!isNaN(z) && z > 0.5 && z < 3) {
+        document.documentElement.style.setProperty('--ui-zoom', z);
+      }
     })();
 
-    // 2) Спрятать обложку при клике — запускаем плеер
-    document.getElementById('splashPlay').addEventListener('click', () => {
-      document.body.classList.remove('is-splash');
-      // Инициируем клик на основную кнопку Play твоего плеера
-      const playBtn = document.getElementById('playBtn');
-      if (playBtn) playBtn.click();
+    // ---------- ПРОСТОЙ ПЛЕЕР С ЧТЕНИЕМ playlist.json ----------
+    const audio = document.getElementById('audio');
+    const listEl = document.getElementById('list');
+    const nowTitle = document.getElementById('nowTitle');
+    const seek = document.getElementById('seek');
+    const cur = document.getElementById('current');
+    const tot = document.getElementById('total');
+    const btnPlay = document.getElementById('play');
+    const btnPrev = document.getElementById('prev');
+    const btnNext = document.getElementById('next');
+
+    let tracks = [];
+    let index = 0;
+    let seekingByScript = false;
+
+    function fmt(t){
+      if (!isFinite(t)) return '0:00';
+      const m = Math.floor(t/60);
+      const s = Math.floor(t%60).toString().padStart(2,'0');
+      return `${m}:${s}`;
+    }
+
+    async function loadPlaylist(){
+      // формát: [{ "title": "...", "file": "tracks/....mp3" }, ...]
+      const res = await fetch('playlist.json', { cache:'no-store' });
+      tracks = await res.json();
+      renderList();
+      if (tracks.length) load(index);
+    }
+
+    function renderList(){
+      listEl.innerHTML = '';
+      tracks.forEach((t,i)=>{
+        const row = document.createElement('button');
+        row.className = 'row';
+        row.type = 'button';
+        row.setAttribute('role','option');
+        row.innerHTML = `<span class="row__num">${i+1}</span><span class="row__title">${t.title || ('Track '+(i+1))}</span>`;
+        row.addEventListener('click', ()=>{ index = i; load(index,true); });
+        listEl.appendChild(row);
+      });
+      markActive();
+    }
+
+    function markActive(){
+      const rows = [...listEl.querySelectorAll('.row')];
+      rows.forEach((r,i)=>r.classList.toggle('is-active', i===index));
+    }
+
+    function load(i, autoplay=false){
+      const t = tracks[i];
+      if (!t) return;
+      audio.src = t.file || t.path || t.url; // гибко
+      nowTitle.textContent = t.title || `Track ${i+1}`;
+      markActive();
+      if (autoplay) audio.play().catch(()=>{});
+    }
+
+    // Прогресс
+    audio.addEventListener('loadedmetadata', ()=>{
+      tot.textContent = '/ ' + fmt(audio.duration);
+    });
+    audio.addEventListener('timeupdate', ()=>{
+      cur.textContent = fmt(audio.currentTime);
+      if (!seekingByScript && isFinite(audio.duration)) {
+        seek.value = Math.round(audio.currentTime / audio.duration * 1000);
+      }
+    });
+    seek.addEventListener('input', ()=>{
+      if (!isFinite(audio.duration)) return;
+      seekingByScript = true;
+      audio.currentTime = (seek.value/1000) * audio.duration;
+      seekingByScript = false;
     });
 
-    // ====== ниже твоя логика плеера (загрузка плейлиста, воспроизведение, кнопки и т.д.) ======
-    // НИЧЕГО НЕ МЕНЯЛ — оставь твои текущие скрипты/функции как есть
-    // ------------------------------------------------------------------
-    // пример включения твоего файла с логикой:
-    // <script src="player.js"></script>
+    // Контролы
+    btnPlay.addEventListener('click', ()=>{
+      if (audio.paused) audio.play(); else audio.pause();
+    });
+    audio.addEventListener('play',  ()=> btnPlay.textContent = '❚❚');
+    audio.addEventListener('pause', ()=> btnPlay.textContent = '▶');
+
+    btnPrev.addEventListener('click', ()=>{
+      index = (index - 1 + tracks.length) % tracks.length;
+      load(index, true);
+    });
+    btnNext.addEventListener('click', ()=>{
+      index = (index + 1) % tracks.length;
+      load(index, true);
+    });
+    audio.addEventListener('ended', ()=>{ btnNext.click(); });
+
+    // ---------- ПОСТЕР/ОБЛОЖКА ----------
+    const poster = document.getElementById('poster');
+    const posterPlay = document.getElementById('posterPlay');
+    function hidePosterAndPlay(){
+      poster.classList.add('poster--hide');
+      // небольшая задержка, чтобы постер успел скрыться
+      setTimeout(()=>{ if (audio.src) audio.play().catch(()=>{}); }, 120);
+    }
+    poster.addEventListener('click', hidePosterAndPlay);
+    posterPlay.addEventListener('click', (e)=>{ e.stopPropagation(); hidePosterAndPlay(); });
+
+    // GO
+    loadPlaylist();
   </script>
 </body>
 </html>
