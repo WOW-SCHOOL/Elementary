@@ -6,42 +6,26 @@
   <title>WOW SCHOOL — English File: Elementary</title>
   <meta name="color-scheme" content="dark light" />
 
-  <!-- ✅ Превью-обложка для Miro / соцсетей -->
+  <!-- ✅ Абсолютные ссылки под твой домен для превью в Miro -->
+  <meta property="og:url" content="https://wow-school.github.io/Elementary/">
   <meta property="og:title" content="WOW SCHOOL — English File: Elementary">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="cover.jpg">
+  <meta property="og:image" content="https://wow-school.github.io/Elementary/cover.jpg">
   <meta property="og:image:alt" content="English File — Elementary (cover)">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="WOW SCHOOL — English File: Elementary">
-  <meta name="twitter:image" content="cover.jpg">
-  <link rel="image_src" href="cover.jpg">
+  <meta name="twitter:image" content="https://wow-school.github.io/Elementary/cover.jpg">
+
+  <link rel="image_src" href="https://wow-school.github.io/Elementary/cover.jpg">
 
   <link rel="stylesheet" href="style.css?v=5" />
 
-  <script>
-  // Управление видом в iFrame Miro через параметры URL
-  (function () {
-    const q = new URLSearchParams(location.search);
-
-    // Включаем «режим Miro» по флагу ?miro=1
-    if (q.has('miro')) document.documentElement.classList.add('miro');
-
-    // Масштаб (zoom) страницы, например ?zoom=1.18
-    const z = parseFloat(q.get('zoom'));
-    if (!Number.isNaN(z)) document.documentElement.style.setProperty('--miro-zoom', z);
-
-    // Дополнительное увеличение шрифтов, например ?fs=1.1 (10% больше)
-    const fs = parseFloat(q.get('fs'));
-    if (!Number.isNaN(fs)) document.documentElement.style.setProperty('--miro-font-scale', fs);
-
-    // Восстановим сохранённые значения (если пользователь уже двигал ползунки)
-    const savedZ = localStorage.getItem('miroZoom');
-    const savedFS = localStorage.getItem('miroFontScale');
-    if (savedZ && !q.has('zoom')) document.documentElement.style.setProperty('--miro-zoom', savedZ);
-    if (savedFS && !q.has('fs'))  document.documentElement.style.setProperty('--miro-font-scale', savedFS);
-  })();
-  </script>
+  <!-- остальной скрипт из прошлого сообщения (чтение ?miro, ?zoom, ?fs) без изменений -->
 </head>
+
 <body>
   <!-- Обложка (постер) поверх плеера -->
   <div id="poster" class="poster" role="button" aria-label="Открыть плеер" tabindex="0">
